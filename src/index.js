@@ -2,10 +2,11 @@ const express = require("express");
 const cors = require("cors");
 const http = require("http");
 const { Server } = require("socket.io");
+const connectDB = require("./config/database");
 
 const app = express();
 const server = http.createServer(app);
-
+connectDB()
 app.use(cors());
 
 const io = new Server(server, {
@@ -15,21 +16,21 @@ const io = new Server(server, {
   },
 });
 
-let counter = 0;
+let list = [];
 
 io.on("connection", (socket) => {
   console.log("USER CONNECTED: ", socket.id);
 
-  socket.emit("counterUpdate", counter);
+  socket.emit("counterUpdate", list);
 
-  socket.on("increment", () => {
-    counter++;
-    io.emit("counterUpdate", counter);
+  socket.on("listadd", (data) => {
+    list.push(data);
+    io.emit("counterUpdate", list);
   });
 
   socket.on("decrement", () => {
-    counter--;
-    io.emit("counterUpdate", counter);
+    list--;
+    io.emit("counterUpdate", list);
   });
 });
 
