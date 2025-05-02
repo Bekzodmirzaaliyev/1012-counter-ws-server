@@ -34,3 +34,7 @@ router.post("/register", async (req, res) => {
     console.log("Server error: ", error);
   }
 });
+
+
+
+module.exports = router;
