@@ -4,14 +4,14 @@ const router = express.Router();
 
 router.post("/register", async (req, res) => {
   try {
+    console.log(req.body); //undefined
     const { username, password, email, profileImage, grade } = req.body;
-
     // Validation
     if (!username || !password || !email) {
-      res.status(400).json({ message: "Заполните все ячейки!" });
+      return res.status(400).json({ message: "Заполните все ячейки!" });
     }
 
-    const checkEmail = userModel.findOne({ email });
+    const checkEmail = await  userModel.findOne({ email });
 
     if (checkEmail) {
       res.status(409).json({ message: "Такой email уже существует" });
@@ -35,6 +35,30 @@ router.post("/register", async (req, res) => {
   }
 });
 
+router.post("/login", async (req, res) => {
+  try {
+    const { password, email } = req.body;
 
+    if (!password || !email) {
+      return res.status(400).json({
+        message: "All fields is required",
+      });
+    }
+
+    const checkuser = await userModel.findOne({ password, email }); // true / false
+
+    if (!checkuser) {
+      //
+      return res.status(404).json("User not found");
+    }
+
+    res.status(200).json({
+      message: "User founded",
+      user: checkuser,
+    });
+  } catch (e) {
+    console.log("error: ", e);
+  }
+});
 
 module.exports = router;

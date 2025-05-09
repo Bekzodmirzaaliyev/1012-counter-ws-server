@@ -3,11 +3,14 @@ const cors = require("cors");
 const http = require("http");
 const { Server } = require("socket.io");
 const connectDB = require("./config/database");
-
+const auth = require("./routes/authRoutes")
 const app = express();
+app.use(express.json());
 const server = http.createServer(app);
-connectDB()
 app.use(cors());
+connectDB()
+
+app.use("/api/v1/auth", auth)
 
 const io = new Server(server, {
   cors: {
