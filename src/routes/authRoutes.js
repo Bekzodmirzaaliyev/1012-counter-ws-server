@@ -61,4 +61,13 @@ router.post("/login", async (req, res) => {
   }
 });
 
+router.get("/getAllUsers", async (req,res) => {
+  try {
+    const users = await userModel.find() // all users
+    res.status(200).json(users)
+  } catch(e) {
+    console.log("SERVER ERROR:", e)
+  }
+})
+
 module.exports = router;

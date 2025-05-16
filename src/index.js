@@ -24,17 +24,11 @@ let list = [];
 io.on("connection", (socket) => {
   console.log("USER CONNECTED: ", socket.id);
 
-  socket.emit("counterUpdate", list);
+  socket.on("connected", (data) => {
+    console.log(data)
+    socket.broadcast.emit("users", data)
+  })
 
-  socket.on("listadd", (data) => {
-    list.push(data);
-    io.emit("counterUpdate", list);
-  });
-
-  socket.on("decrement", () => {
-    list--;
-    io.emit("counterUpdate", list);
-  });
 });
 
 app.use("/", async (req, res) => {
