@@ -1,40 +1,59 @@
-const express = require("express");
-const cors = require("cors");
-const http = require("http");
-const { Server } = require("socket.io");
-const connectDB = require("./config/database");
-const auth = require("./routes/authRoutes")
-const app = express();
-app.use(express.json());
-const server = http.createServer(app);
-app.use(cors());
-connectDB()
+const express = require("express")
+const cors = require("cors")
+const http = require("http")
+const { Server } = require("socket.io")
+const connectDB = require("./config/database")
+const authRoutes = require("./routes/authRoutes")
+const User = require("./models/userModel")
 
-app.use("/api/v1/auth", auth)
-
+const app = express()
+const server = http.createServer(app)
 const io = new Server(server, {
   cors: {
-    origin: "*", // or your frontend URL
-    methods: ["GET", "POST"],
-  },
-});
+    origin: "*",
+    methods: ["GET", "POST"]
+  }
+})
 
-let list = [];
+// Middleware
+app.use(cors())
+app.use(express.json())
+connectDB()
+
+// Routes
+app.use("/api/v1/auth", authRoutes)
+
+let onlineUsers = []
 
 io.on("connection", (socket) => {
-  console.log("USER CONNECTED: ", socket.id);
+  console.log(`🔌 New client connected: ${socket.id}`)
 
-  socket.on("connected", (data) => {
-    console.log(data)
-    socket.broadcast.emit("users", data)
+  socket.on("connected", (userData) => {
+    const exists = onlineUsers.find(u => u._id === userData._id)
+    if (!exists) {
+      const newUser = { ...userData, socketId: socket.id, status: "Online" }
+      onlineUsers.push(newUser)
+      console.log("✅ User connected:", newUser.username)
+    }
+
+    io.emit("users", onlineUsers)
   })
 
-});
+  socket.on("disconnect", () => {
+    const disconnectedUser = onlineUsers.find(u => u.socketId === socket.id)
+    if (disconnectedUser) {
+      console.log("❌ User disconnected:", disconnectedUser.username)
+    }
 
-app.use("/", async (req, res) => {
-  res.send("Hobbit tentak");
-});
+    onlineUsers = onlineUsers.filter(user => user.socketId !== socket.id)
+    io.emit("users", onlineUsers)
+  })
+})
+
+app.get("/", (req, res) => {
+  res.send("💬 Real-Time Chat Backend is Running...")
+})
 
 server.listen(8000, () => {
-  console.log("Socket server listening on port 8000");
-});
+  console.log("🚀 Server listening on http://localhost:8000")
+})
