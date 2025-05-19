@@ -70,4 +70,14 @@ router.get("/getAllUsers", async (req,res) => {
   }
 })
 
+router.get('/getUser/:id', async (req, res) => {
+  try {
+    const { id } = req.params
+    const user = await userModel.findById(id)
+    res.status(200).json(user)
+  } catch (e) {
+    console.log("SERVER ERROR:", e)
+  }
+})
+
 module.exports = router;
