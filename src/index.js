@@ -23,31 +23,30 @@ connectDB()
 // Routes
 app.use("/api/v1/auth", authRoutes)
 
-let onlineUsers = []
+let onlineUsers = [];
+
+(async () => {
+  const users = await User.find({});
+  onlineUsers = users.map(user => ({
+    _id: user._id.toString(),
+    username: user.username,
+    profileImage: user.profileImage,
+    email: user.email,
+    grade: user.grade,
+    status: false
+  }));
+})();
 
 io.on("connection", (socket) => {
   console.log(`🔌 New client connected: ${socket.id}`)
 
   socket.on("connected", (userData) => {
-    const exists = onlineUsers.find(u => u._id === userData._id)
-    if (!exists) {
-      const newUser = { ...userData, socketId: socket.id, status: "Online" }
-      onlineUsers.push(newUser)
-      console.log("✅ User connected:", newUser.username)
-    }
-
+    console.log("🔥 Connected user: ", userData)
+    onlineUsers = onlineUsers.map(user => user._id === userData._id ? { ...user, status: true, socketId: socket.id } : user)
     io.emit("users", onlineUsers)
   })
 
-  socket.on("disconnect", () => {
-    const disconnectedUser = onlineUsers.find(u => u.socketId === socket.id)
-    if (disconnectedUser) {
-      console.log("❌ User disconnected:", disconnectedUser.username)
-    }
-
-    onlineUsers = onlineUsers.filter(user => user.socketId !== socket.id)
-    io.emit("users", onlineUsers)
-  })
+  
 })
 
 app.get("/", (req, res) => {
