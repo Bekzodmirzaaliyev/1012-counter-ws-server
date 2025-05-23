@@ -17,7 +17,7 @@ const userModel = mongoose.Schema({
   profileImage: {
     type: String,
     default:
-      "https://mir-s3-cdn-cf.behance.net/project_modules/max_1200/f3cc8e70393349.5ba21bd701298.jpg",
+      "https://static.vecteezy.com/system/resources/thumbnails/024/624/549/small_2x/3d-rendering-person-icon-3d-render-blue-user-sign-icon-png.png",
   },
   grade: {
     type: String,
