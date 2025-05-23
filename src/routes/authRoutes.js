@@ -28,7 +28,7 @@ router.post("/register", async (req, res) => {
 
     res.status(201).json({
       message: "Account created successfully",
-      newUser,
+      user:newUser,
     });
   } catch (error) {
     console.log("Server error: ", error);
