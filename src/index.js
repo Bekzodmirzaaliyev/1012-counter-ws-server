@@ -5,6 +5,8 @@ const { Server } = require("socket.io");
 const connectDB = require("./config/database");
 const authRoutes = require("./routes/authRoutes");
 const User = require("./models/userModel");
+const messageModel = require("./models/messageModel");
+const messageRoutes = require("./routes/messageRouter");
 
 const app = express();
 const server = http.createServer(app);
@@ -22,6 +24,7 @@ connectDB();
 
 // Routes
 app.use("/api/v1/auth", authRoutes);
+app.use("/api/v1/message", messageRoutes);
 
 let onlineUsers = [];
 
@@ -50,9 +53,18 @@ io.on("connection", (socket) => {
     io.emit("users", onlineUsers);
   });
 
-  socket.on("send_message", (data) => {
-    console.log("📨 Message received: ", data);
-    socket.emit("receive_message", data);
+  socket.on("send_message", async (data) => {
+    console.log("data:", data);
+    const receiver = onlineUsers.find((user) => user._id === data.to);
+
+    const newMessage = await messageModel.create({
+      from: data.from,
+      to: data.to,
+      text: data.message,
+    });
+    await newMessage.save();
+
+    io.to(receiver.socketId).emit("receive_message", data);
   });
 });
 
