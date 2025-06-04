@@ -54,18 +54,22 @@ io.on("connection", (socket) => {
   });
 
   socket.on("send_message", async (data) => {
-    console.log("data:", data);
     const receiver = onlineUsers.find((user) => user._id === data.to);
-    console.log("RECIEVER: ", receiver);
-    console.log("RECIEVER SOCKET ID: ", receiver._id);
+
     const newMessage = await messageModel.create({
       from: data.from,
       to: data.to,
       text: data.message,
     });
-    await newMessage.save();
 
-    io.to(receiver._id).emit("receive_message", data);
+    // 🔄 Saqlab bo‘ldi, endi yuborish
+    if (receiver && receiver.socketId) {
+      io.to(receiver.socketId).emit("receive_message", {
+        from: data.from,
+        to: data.to,
+        message: data.message,
+      });
+    }
   });
 });
 
