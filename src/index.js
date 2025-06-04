@@ -65,9 +65,9 @@ io.on("connection", (socket) => {
     // 🔄 Saqlab bo‘ldi, endi yuborish
     if (receiver && receiver.socketId) {
       io.to(receiver.socketId).emit("receive_message", {
-        from: data.from,
-        to: data.to,
-        message: data.message,
+        from: data?.from,
+        to: data?.to,
+        message: data?.message,
       });
     }
   });
