@@ -6,7 +6,7 @@ const router = express.Router();
 router.get('/:userid1/:userid2', async (req, res) => {
     try {
         const {userid1, userid2} = req.params
-
+        console.log("CHAT GET: ",userid1, userid2)
         const message = await messageModel.find({
             $or: [
                 {from: userid1, to: userid2},

@@ -56,7 +56,9 @@ io.on("connection", (socket) => {
   socket.on("send_message", async (data) => {
     console.log("data:", data);
     const receiver = onlineUsers.find((user) => user._id === data.to);
-
+    console.log("RECIEVER: ", receiver);
+    console.log("RECIEVER SOCKET ID: ", receiver.socketId);
+    
     const newMessage = await messageModel.create({
       from: data.from,
       to: data.to,
