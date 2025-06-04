@@ -57,8 +57,7 @@ io.on("connection", (socket) => {
     console.log("data:", data);
     const receiver = onlineUsers.find((user) => user._id === data.to);
     console.log("RECIEVER: ", receiver);
-    console.log("RECIEVER SOCKET ID: ", receiver.socketId);
-    
+    console.log("RECIEVER SOCKET ID: ", receiver._id);
     const newMessage = await messageModel.create({
       from: data.from,
       to: data.to,
@@ -66,7 +65,7 @@ io.on("connection", (socket) => {
     });
     await newMessage.save();
 
-    io.to(receiver.socketId).emit("receive_message", data);
+    io.to(receiver._id).emit("receive_message", data);
   });
 });
 
