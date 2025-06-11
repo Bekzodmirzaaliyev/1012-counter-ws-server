@@ -64,7 +64,7 @@ io.on("connection", (socket) => {
     console.log("RECEIVER: ", receiver);
     console.log("RECEIVER ID: ", receiver.socketId);
     // 🔄 Saqlab bo‘ldi, endi yuborish
-    if (receiver && receiver.socketId) {
+    if (receiver) {
       io.to(receiver.socketId).emit("receive_message", {
         from: data?.from,
         to: data?.to,
