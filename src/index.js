@@ -59,15 +59,16 @@ io.on("connection", (socket) => {
     const newMessage = await messageModel.create({
       from: data.from,
       to: data.to,
-      text: data.message,
+      text: data.text,
     });
-
+    console.log("RECEIVER: ", receiver);
+    console.log("RECEIVER ID: ", receiver.socketId);
     // 🔄 Saqlab bo‘ldi, endi yuborish
     if (receiver && receiver.socketId) {
       io.to(receiver.socketId).emit("receive_message", {
         from: data?.from,
         to: data?.to,
-        message: data?.message,
+        message: data?.text,
       });
     }
   });
