@@ -68,7 +68,7 @@ io.on("connection", (socket) => {
       io.to(receiver.socketId).emit("receive_message", {
         from: data?.from,
         to: data?.to,
-        message: data?.text,
+        text: data?.text,
       });
     }
   });
