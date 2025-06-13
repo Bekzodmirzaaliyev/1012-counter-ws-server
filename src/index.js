@@ -18,7 +18,7 @@ const io = new Server(server, {
 });
 
 // Middleware
-app.use(cors({origin: ["http://localhost:5173", "http://localhost:5174"]}));
+app.use(cors({ origin: ["http://localhost:5173", "http://localhost:5174"] }));
 app.use(express.json());
 connectDB();
 
@@ -61,14 +61,18 @@ io.on("connection", (socket) => {
       to: data.to,
       text: data.text,
     });
+    console.log("DATE: ", { date: new Date().toLocaleTimeString() });
     console.log("RECEIVER: ", receiver);
     console.log("RECEIVER ID: ", receiver.socketId);
-    // 🔄 Saqlab bo‘ldi, endi yuborish
     if (receiver) {
       io.to(receiver.socketId).emit("receive_message", {
         from: data?.from,
         to: data?.to,
         text: data?.text,
+        date: {
+          day: new Date().toLocaleDateString(), // 13.06.2025
+          time: new Date().toLocaleTimeString(), // 15:19
+        },
       });
     }
   });
