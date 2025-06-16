@@ -24,6 +24,27 @@ const userModel = mongoose.Schema({
     enum: ["junior", "middle", "senior", "Team Lead"],
     default: "junior",
   },
+  description: {
+    type: String,
+    default: "No description",
+  },
+  role: {
+    type: String,
+    enum: ["user", "admin", "moderator", "owner", "vip"],
+    default: "user",
+  },
+  isBan: {
+    type: Boolean,
+    default: false,
+  },
+  isMute: {
+    type: Boolean,
+    default: false,
+  },
+  warn: {
+    type: Number,
+    default: 0,
+  }
 });
 
 module.exports = mongoose.model("userWS1012", userModel);
