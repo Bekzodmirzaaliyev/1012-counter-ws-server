@@ -44,7 +44,7 @@ const userModel = mongoose.Schema({
   warn: {
     type: Number,
     default: 0,
-  }
+  },
 });
 
 module.exports = mongoose.model("userWS1012", userModel);

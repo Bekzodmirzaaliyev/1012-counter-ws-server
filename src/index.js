@@ -7,6 +7,7 @@ const authRoutes = require("./routes/authRoutes");
 const User = require("./models/userModel");
 const messageModel = require("./models/messageModel");
 const messageRoutes = require("./routes/messageRouter");
+const userModel = require("./models/userModel");
 
 const app = express();
 const server = http.createServer(app);
@@ -74,6 +75,57 @@ io.on("connection", (socket) => {
           time: new Date().toLocaleTimeString(), // 15:19
         },
       });
+    }
+  });
+
+  socket.on("setAdmin", async (data) => {
+    try {
+      console.log(data);
+
+      const beruvchi = await userModel.findById(data.userID);
+      const oluvchi = await userModel.findById(data.selectedUser);
+
+      if (!oluvchi || !beruvchi) {
+        return socket.emit("admin_notification", {
+          success: false,
+          message: "Foydalanuvchi topilmadi",
+        });
+      }
+
+      if (!["user", "admin", "moderator", "vip"].includes(role)) {
+        return socket.emit("admin_notification", {
+          success: false,
+          message: "Notog'ri Role tanlandi",
+        });
+      }
+
+      if (!["owner", "admin"].includes(beruvchi.role)) {
+        return socket.emit("admin_notification", {
+          success: false,
+          message: "Sizda ruxsat yoq",
+        });
+      }
+
+      if (oluvchi.role === "owner") {
+        return socket.emit("admin_notification", {
+          success: false,
+          message: "Owner rolini o'zgartirish mumkin emas!",
+        });
+      }
+
+      if (oluvchi.role === role) {
+        return socket.emit("admin_notification", {
+          success: false,
+          message: `U foydalanuvchi allaqachon ${role} bo‘lgan`,
+        });
+      }
+
+      oluvchi.role = role
+      await oluvchi.save()
+
+      console.log("oluvchi: ", oluvchi);
+    } catch (e) {
+      console.log("Socket error: ", e);
     }
   });
 });
