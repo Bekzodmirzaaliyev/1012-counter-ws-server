@@ -92,7 +92,7 @@ io.on("connection", (socket) => {
         });
       }
 
-      if (!["user", "admin", "moderator", "vip"].includes(role)) {
+      if (!["user", "admin", "moderator", "vip"].includes(data.role)) {
         return socket.emit("admin_notification", {
           success: false,
           message: "Notog'ri Role tanlandi",
@@ -113,17 +113,22 @@ io.on("connection", (socket) => {
         });
       }
 
-      if (oluvchi.role === role) {
+      if (oluvchi.role === data.role) {
+        console.log("U foydalanuvchi allaqachon")
         return socket.emit("admin_notification", {
           success: false,
-          message: `U foydalanuvchi allaqachon ${role} bo‘lgan`,
+          message: `U foydalanuvchi allaqachon ${data.role} bo‘lgan`,
         });
       }
 
-      oluvchi.role = role
-      await oluvchi.save()
+      oluvchi.role = data.role;
+      await oluvchi.save();
 
-      console.log("oluvchi: ", oluvchi);
+      onlineUsers = onlineUsers.map((u) =>
+        u._id === oluvchi._id.toString() ? { ...u, role: data.role } : u
+      );
+      console.log("online:",onlineUsers)
+      io.emit("users", onlineUsers);
     } catch (e) {
       console.log("Socket error: ", e);
     }
