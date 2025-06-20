@@ -114,7 +114,7 @@ io.on("connection", (socket) => {
       }
 
       if (oluvchi.role === data.role) {
-        console.log("U foydalanuvchi allaqachon")
+        console.log("U foydalanuvchi allaqachon");
         return socket.emit("admin_notification", {
           success: false,
           message: `U foydalanuvchi allaqachon ${data.role} bo‘lgan`,
@@ -123,11 +123,12 @@ io.on("connection", (socket) => {
 
       oluvchi.role = data.role;
       await oluvchi.save();
-
-      onlineUsers = onlineUsers.map((u) =>
-        u._id === oluvchi._id.toString() ? { ...u, role: data.role } : u
-      );
-      console.log("online:",onlineUsers)
+      console.log("onlinesss: ", onlineUsers)
+      onlineUsers = onlineUsers.map((u) => {
+        console.log("detdom: ", u?._id === oluvchi?._id.toString());
+        u._id === oluvchi._id ? { ...u, role: data.role } : u;
+      });
+      console.log("online:", onlineUsers);
       io.emit("users", onlineUsers);
     } catch (e) {
       console.log("Socket error: ", e);
