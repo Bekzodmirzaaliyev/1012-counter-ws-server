@@ -38,6 +38,7 @@ let onlineUsers = [];
     email: user.email,
     grade: user.grade,
     status: false,
+    role: user.role,
   }));
 })();
 
@@ -123,16 +124,26 @@ io.on("connection", (socket) => {
 
       oluvchi.role = data.role;
       await oluvchi.save();
-      console.log("onlinesss: ", onlineUsers)
-      onlineUsers = onlineUsers.map((u) => {
-        console.log("detdom: ", u?._id === oluvchi?._id.toString());
-        u._id === oluvchi._id ? { ...u, role: data.role } : u;
-      });
-      console.log("online:", onlineUsers);
+
+      onlineUsers = onlineUsers.map((user) =>
+        user._id === oluvchi._id.toString()
+          ? { ...user, role: data.role }
+          : user
+      );
+
       io.emit("users", onlineUsers);
     } catch (e) {
       console.log("Socket error: ", e);
     }
+  });
+
+  socket.on("ban", async (data) => {
+    console.log("data ban:", data);
+
+    const beruvchi = User.findById(data.userID._id);
+    const oluvchi = User.findById(data.userID._id);
+    
+    console.log("LAHM GEY: ", beruvchi);
   });
 });
 
