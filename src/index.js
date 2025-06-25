@@ -39,6 +39,9 @@ let onlineUsers = [];
     grade: user.grade,
     status: false,
     role: user.role,
+    isBan: user.isBan,
+    isMute: user.isMute,
+    warn: user.warn,
   }));
 })();
 
@@ -137,13 +140,55 @@ io.on("connection", (socket) => {
     }
   });
 
-  socket.on("ban", async (data) => {
-    console.log("data ban:", data);
+  socket.on("ban", async ({ userID, selectedUser, reason }) => {
+    console.log("data ban:", { userID, selectedUser, reason });
 
-    const beruvchi = User.findById(data.userID._id);
-    const oluvchi = User.findById(data.userID._id);
-    
-    console.log("LAHM GEY: ", beruvchi);
+    const beruvchi = await User.findById(userID);
+    const oluvchi = await User.findById(selectedUser);
+
+    if (!beruvchi || !oluvchi) {
+      console.log("Beruvchi yoki oluchi topilmadi");
+      return socket.emit("admin_notification", {
+        success: false,
+        message: "Foydalanuvchi topilmadi",
+      });
+    }
+    if (!["owner", "admin"].includes(beruvchi.role)) {
+      console.log("owner yoki admin dostupi yoq");
+      return socket.emit("admin_notification", {
+        success: false,
+        message: "Sizda ruxsat yo'q",
+      });
+    }
+    if (["owner"].includes(oluvchi.role)) {
+      console.log("ownerga ban berib bolmaydi");
+      return socket.emit("admin_notification", {
+        success: false,
+        message: "Ownerga ban berib bolmaydi",
+      });
+    }
+    if (oluvchi.isBan) {
+      console.log("bu user allaqchon ban bolgan");
+      return socket.emit("admin_notification", {
+        success: false,
+        message: "Bu user allaqachon ban bolgan",
+      });
+    }
+
+    oluvchi.isBan = true;
+    await oluvchi.save();
+
+    console.log("LAHM GEY: ", { oluvchi });
+
+    onlineUsers = onlineUsers.map((user) =>
+      user._id === oluvchi._id.toString() ? { ...user, isBan: true } : user
+    );
+    io.emit("BanResult", onlineUsers);
+    io.to(oluvchi.socketId).emit("BanResult", {
+      success: false,
+      message: `Sizga ${beruvchi.username} tomonidan ban berildi`,
+      user: oluvchi,
+    });
   });
 });
 
