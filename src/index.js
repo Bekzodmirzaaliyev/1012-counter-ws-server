@@ -56,6 +56,113 @@ io.on("connection", (socket) => {
         : user
     );
     io.emit("users", onlineUsers);
+
+    socket.on("ban", async ({ userID, selectedUser, reason }) => {
+      console.log("data ban:", { userID, selectedUser, reason });
+
+      const beruvchi = await User.findById(userID);
+      const oluvchi = await User.findById(selectedUser);
+
+      if (!beruvchi || !oluvchi) {
+        console.log("Beruvchi yoki oluchi topilmadi");
+        return socket.emit("admin_notification", {
+          success: false,
+          message: "Foydalanuvchi topilmadi",
+        });
+      }
+      if (!["owner", "admin"].includes(beruvchi.role)) {
+        console.log("owner yoki admin dostupi yoq");
+        return socket.emit("admin_notification", {
+          success: false,
+          message: "Sizda ruxsat yo'q",
+        });
+      }
+      if (["owner"].includes(oluvchi.role)) {
+        console.log("ownerga ban berib bolmaydi");
+        return socket.emit("admin_notification", {
+          success: false,
+          message: "Ownerga ban berib bolmaydi",
+        });
+      }
+      if (oluvchi.isBan) {
+        console.log("bu user allaqchon ban bolgan");
+        return socket.emit("admin_notification", {
+          success: false,
+          message: "Bu user allaqachon ban bolgan",
+        });
+      }
+
+      oluvchi.isBan = true;
+      await oluvchi.save();
+
+      console.log("LAHM GEY: ", { oluvchi });
+
+      onlineUsers = onlineUsers.map((user) =>
+        user._id === oluvchi._id.toString() ? { ...user, isBan: true } : user
+      );
+      io.emit("BanResult", onlineUsers);
+      console.log("SOCKET ID BAN: ", oluvchi.socketId);
+      const filter = onlineUsers.find((user) => user._id === oluvchi._id);
+      io.to().emit("Ban_Result_reciever", {
+        success: false,
+        message: `Sizga ${beruvchi.username} tomonidan ban berildi sabab: ${reason}`,
+        user: oluvchi,
+      });
+    });
+
+    socket.on("unban", async ({ userID, selectedUser }) => {
+      try {
+        const beruvchi = await User.findById(userID);
+        const oluvchi = await User.findById(selectedUser);
+
+        if (!beruvchi || !oluvchi) {
+          console.log("Beruvchi yoki oluchi topilmadi");
+          return socket.emit("admin_notification", {
+            success: false,
+            message: "Foydalanuvchi topilmadi",
+          });
+        }
+        if (!["owner", "admin"].includes(beruvchi.role)) {
+          console.log("owner yoki admin dostupi yoq");
+          return socket.emit("admin_notification", {
+            success: false,
+            message: "Sizda ruxsat yo'q",
+          });
+        }
+        if (["owner"].includes(oluvchi.role)) {
+          console.log("ownerga ban berib bolmaydi");
+          return socket.emit("admin_notification", {
+            success: false,
+            message: "Ownerga ban berib bolmaydi",
+          });
+        }
+        if (!oluvchi.isBan) {
+          console.log("bu user allaqchon blockdan chiqgan");
+          return socket.emit("admin_notification", {
+            success: false,
+            message: "Bu user allaqachon ban bolgan",
+          });
+        }
+
+        oluvchi.isBan = false;
+        await oluvchi.save();
+
+        onlineUsers = onlineUsers.map((user) =>
+          user._id === oluvchi._id.toString() ? { ...user, isBan: false } : user
+        );
+
+        io.emit("BanResult", onlineUsers);
+
+        console.log("SOCKET ID UNBAN: ", oluvchi.socketId);
+        io.to(oluvchi.socketId).emit("Ban_Result_reciever", {
+          success: true,
+          message: `Sizga ${beruvchi.username} tomonidan unban qilindi`,
+          user: oluvchi,
+        });
+      } catch (e) {
+        console.log("F Socket: ", e);
+      }
+    });
   });
 
   socket.on("send_message", async (data) => {
@@ -138,57 +245,6 @@ io.on("connection", (socket) => {
     } catch (e) {
       console.log("Socket error: ", e);
     }
-  });
-
-  socket.on("ban", async ({ userID, selectedUser, reason }) => {
-    console.log("data ban:", { userID, selectedUser, reason });
-
-    const beruvchi = await User.findById(userID);
-    const oluvchi = await User.findById(selectedUser);
-
-    if (!beruvchi || !oluvchi) {
-      console.log("Beruvchi yoki oluchi topilmadi");
-      return socket.emit("admin_notification", {
-        success: false,
-        message: "Foydalanuvchi topilmadi",
-      });
-    }
-    if (!["owner", "admin"].includes(beruvchi.role)) {
-      console.log("owner yoki admin dostupi yoq");
-      return socket.emit("admin_notification", {
-        success: false,
-        message: "Sizda ruxsat yo'q",
-      });
-    }
-    if (["owner"].includes(oluvchi.role)) {
-      console.log("ownerga ban berib bolmaydi");
-      return socket.emit("admin_notification", {
-        success: false,
-        message: "Ownerga ban berib bolmaydi",
-      });
-    }
-    if (oluvchi.isBan) {
-      console.log("bu user allaqchon ban bolgan");
-      return socket.emit("admin_notification", {
-        success: false,
-        message: "Bu user allaqachon ban bolgan",
-      });
-    }
-
-    oluvchi.isBan = true;
-    await oluvchi.save();
-
-    console.log("LAHM GEY: ", { oluvchi });
-
-    onlineUsers = onlineUsers.map((user) =>
-      user._id === oluvchi._id.toString() ? { ...user, isBan: true } : user
-    );
-    io.emit("BanResult", onlineUsers);
-    io.to(oluvchi.socketId).emit("BanResult", {
-      success: false,
-      message: `Sizga ${beruvchi.username} tomonidan ban berildi`,
-      user: oluvchi,
-    });
   });
 });
 
