@@ -246,6 +246,10 @@ io.on("connection", (socket) => {
     io.emit("users", onlineUsers);
     console.log(`❌ Foydalanuvchi chiqdi: ${socket.id}`);
   });
+
+  socket.on("mute", ({ userID, selectedUser }) => {
+
+  });
 });
 
 
