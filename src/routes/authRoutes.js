@@ -52,6 +52,10 @@ router.post("/login", async (req, res) => {
       return res.status(404).json("User not found");
     }
 
+    if(checkuser.isBan) {
+      return res.status(403).json("You are banned")
+    }
+
     res.status(200).json({
       message: "User founded",
       user: checkuser,
