@@ -8,6 +8,7 @@ const User = require("./models/userModel");
 const messageModel = require("./models/messageModel");
 const messageRoutes = require("./routes/messageRouter");
 const userModel = require("./models/userModel");
+const { log } = require("console");
 
 const app = express();
 const server = http.createServer(app);
@@ -229,9 +230,7 @@ io.on("connection", (socket) => {
     await oluvchi.save();
 
     onlineUsers = onlineUsers.map((user) =>
-      user._id === oluvchi._id.toString()
-        ? { ...user, role: data.role }
-        : user
+      user._id === oluvchi._id.toString() ? { ...user, role: data.role } : user
     );
 
     io.emit("users", onlineUsers);
@@ -247,11 +246,90 @@ io.on("connection", (socket) => {
     console.log(`❌ Foydalanuvchi chiqdi: ${socket.id}`);
   });
 
-  socket.on("mute", ({ userID, selectedUser }) => {
+  // ✅ MUTE
+  socket.on("mute", async ({ userID, selectedUser }) => {
+    console.log("DEBUG MUTE: ", { userID, selectedUser });
 
+    const beruvchi = onlineUsers.find((user) => user._id === userID);
+    const oluvchi = onlineUsers.find((user) => user._id === selectedUser);
+    console.log({ beruvchi, oluvchi });
+
+    if (!beruvchi || !oluvchi) {
+      return socket.emit("admin_notification", {
+        success: false,
+        message: "Foydalanuvchi topilmadi",
+      });
+    }
+    if (oluvchi.role === "owner") {
+      return socket.emit("admin_notification", {
+        success: false,
+        message: "Ownerni mute qilish mumkin emas",
+      });
+    }
+    if (!["owner", "admin", "moderator"].includes(beruvchi.role)) {
+      return socket.emit("admin_notification", {
+        success: false,
+        message: "Ruxsat yo‘q",
+      });
+    }
+    if (oluvchi.isMute) {
+      return socket.emit("admin_notification", {
+        success: false,
+        message: "Foydalanuvchi allaqachon mute qilingan",
+      });
+    }
+    oluvchi.isMute = true;
+    await oluvchi.save();
+    console.log(oluvchi);
+
+    onlineUsers = onlineUsers.map((user) =>
+      user._id === oluvchi._id.toString() ? { ...user, isMute: true } : user
+    );
+    io.to(oluvchi.socketId).emit("mute_result", {
+      success: true,
+      message: "Siz admin tomonidan mute qilindingiz",
+      user: oluvchi,
+    });
+    io.emit("users", onlineUsers);
+  });
+
+  // ✅ UNMUTE
+  socket.on("unmute", async ({ userID, selectedUser }) => {
+    const beruvchi = onlineUsers.find((user) => user._id === userID);
+    const oluvchi = onlineUsers.find((user) => user._id === selectedUser);
+console.log("Debug unmute: ",{ beruvchi, oluvchi });
+    if (!beruvchi || !oluvchi) {
+      return socket.emit("admin_notification", {
+        success: false,
+        message: "Foydalanuvchi topilmadi",
+      });
+    }
+    if (!oluvchi.isMute) {
+      return socket.emit("admin_notification", {
+        success: false,
+        message: "Foydalanuvchi mute qilingan emas",
+      });
+    }
+    if (!["owner", "admin", "moderator"].includes(beruvchi.role)) {
+      return socket.emit("admin_notification", {
+        success: false,
+        message: "Ruxsat yo‘q",
+      });
+    }
+    oluvchi.isMute = false;
+    await oluvchi.save();
+   console.log(oluvchi);
+    onlineUsers = onlineUsers.map((user) =>
+      user._id === oluvchi._id.toString() ? { ...user, isMute: false } : user
+    );
+    io.to(oluvchi.socketId).emit("unmute_result", {
+      success: true,
+      message: "Siz admin tomonidan unmute qilindingiz",
+      user: oluvchi,
+    });
+    io.emit("users", onlineUsers);
   });
 });
-
 
 app.get("/", (req, res) => {
   res.send("💬 Real-Time Chat Backend is Running...");
