@@ -249,10 +249,9 @@ io.on("connection", (socket) => {
   // ✅ MUTE
   socket.on("mute", async ({ userID, selectedUser }) => {
     console.log("DEBUG MUTE: ", { userID, selectedUser });
-
-    const beruvchi = onlineUsers.find((user) => user._id === userID);
-    const oluvchi = onlineUsers.find((user) => user._id === selectedUser);
-    console.log({ beruvchi, oluvchi });
+      const beruvchi = await User.findById(userID);
+  const oluvchi = await User.findById(selectedUser);
+    console.log("oluvchi beruvchi",{ beruvchi, oluvchi });
 
     if (!beruvchi || !oluvchi) {
       return socket.emit("admin_notification", {
@@ -279,7 +278,8 @@ io.on("connection", (socket) => {
       });
     }
     oluvchi.isMute = true;
-    await oluvchi.save();
+    console.log("oluvchi", oluvchi);
+    await oluvchi?.save();
     console.log(oluvchi);
 
     onlineUsers = onlineUsers.map((user) =>
@@ -295,8 +295,8 @@ io.on("connection", (socket) => {
 
   // ✅ UNMUTE
   socket.on("unmute", async ({ userID, selectedUser }) => {
-    const beruvchi = onlineUsers.find((user) => user._id === userID);
-    const oluvchi = onlineUsers.find((user) => user._id === selectedUser);
+     const beruvchi = await User.findById(userID);
+  const oluvchi = await User.findById(selectedUser);
 console.log("Debug unmute: ",{ beruvchi, oluvchi });
     if (!beruvchi || !oluvchi) {
       return socket.emit("admin_notification", {
