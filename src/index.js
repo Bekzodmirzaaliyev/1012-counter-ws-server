@@ -165,14 +165,17 @@ io.on("connection", (socket) => {
 
   // ✅ SEND MESSAGE
   socket.on("send_message", async (data) => {
-    const receiver = onlineUsers.find((user) => user._id === data.to);
+    const receiver = onlineUsers.find((user) => user._id == data.to);
+    const sender = onlineUsers.find((user) => user._id == data.from);
+    console.log("receiver", receiver)
+    console.log("sender", sender)
 
     const newMessage = await messageModel.create({
       from: data.from,
       to: data.to,
       text: data.text,
     });
-
+    
     if (receiver?.socketId) {
       io.to(receiver.socketId).emit("receive_message", {
         from: data.from,
