@@ -169,7 +169,12 @@ io.on("connection", (socket) => {
     const sender = onlineUsers.find((user) => user._id == data.from);
     console.log("receiver", receiver)
     console.log("sender", sender)
-
+    if(sender?.isMute){
+      return socket.emit("admin_notification", {
+        success: false,
+        message: "Siz mute qilingansiz",
+      });
+    }
     const newMessage = await messageModel.create({
       from: data.from,
       to: data.to,
