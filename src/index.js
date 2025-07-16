@@ -167,9 +167,9 @@ io.on("connection", (socket) => {
   socket.on("send_message", async (data) => {
     const receiver = onlineUsers.find((user) => user._id == data.to);
     const sender = onlineUsers.find((user) => user._id == data.from);
-    console.log("receiver", receiver)
-    console.log("sender", sender)
-    if(sender?.isMute){
+    console.log("receiver", receiver);
+    console.log("sender", sender);
+    if (sender?.isMute) {
       return socket.emit("admin_notification", {
         success: false,
         message: "Siz mute qilingansiz",
@@ -180,7 +180,7 @@ io.on("connection", (socket) => {
       to: data.to,
       text: data.text,
     });
-    
+
     if (receiver?.socketId) {
       io.to(receiver.socketId).emit("receive_message", {
         from: data.from,
@@ -244,6 +244,14 @@ io.on("connection", (socket) => {
     io.emit("users", onlineUsers);
   });
 
+  socket.on("call", (data) => {
+    console.log("call", data);
+    io.to(data.to).emit("call-made", {
+      offer: data,
+      from: socket.id,
+    });
+  });
+
   // ✅ DISCONNECT
   socket.on("disconnect", () => {
     onlineUsers = onlineUsers.map((user) =>
@@ -257,9 +265,9 @@ io.on("connection", (socket) => {
   // ✅ MUTE
   socket.on("mute", async ({ userID, selectedUser }) => {
     console.log("DEBUG MUTE: ", { userID, selectedUser });
-      const beruvchi = await User.findById(userID);
-  const oluvchi = await User.findById(selectedUser);
-    console.log("oluvchi beruvchi",{ beruvchi, oluvchi });
+    const beruvchi = await User.findById(userID);
+    const oluvchi = await User.findById(selectedUser);
+    console.log("oluvchi beruvchi", { beruvchi, oluvchi });
 
     if (!beruvchi || !oluvchi) {
       return socket.emit("admin_notification", {
@@ -303,9 +311,9 @@ io.on("connection", (socket) => {
 
   // ✅ UNMUTE
   socket.on("unmute", async ({ userID, selectedUser }) => {
-     const beruvchi = await User.findById(userID);
-  const oluvchi = await User.findById(selectedUser);
-console.log("Debug unmute: ",{ beruvchi, oluvchi });
+    const beruvchi = await User.findById(userID);
+    const oluvchi = await User.findById(selectedUser);
+    console.log("Debug unmute: ", { beruvchi, oluvchi });
     if (!beruvchi || !oluvchi) {
       return socket.emit("admin_notification", {
         success: false,
@@ -326,7 +334,7 @@ console.log("Debug unmute: ",{ beruvchi, oluvchi });
     }
     oluvchi.isMute = false;
     await oluvchi.save();
-   console.log(oluvchi);
+    console.log(oluvchi);
     onlineUsers = onlineUsers.map((user) =>
       user._id === oluvchi._id.toString() ? { ...user, isMute: false } : user
     );
