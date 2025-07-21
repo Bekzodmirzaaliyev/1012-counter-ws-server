@@ -1,7 +1,18 @@
 // ✅ Kiruvchi qo‘ng‘iroq yuborish
+// ✅ Kiruvchi qo‘ng‘iroq yuborish (to‘liq, barqaror versiya)
 const handleCall = (io, onlineUsers, data, socket) => {
-  const targetUser = onlineUsers.find((u) => u._id === data.to._id);
-  console.log(`🔍 Target user: ${targetUser ? targetUser : "not found"}`);
+  // 1. Callee ID ni ajratib olish (object yoki string bo'lishi mumkin)
+  const targetId = typeof data.to === "object" ? data.to._id : data.to;
+  const targetUser = onlineUsers.find((u) => u._id === targetId);
+
+  console.log("📞 Qo‘ng‘iroq ketyapti:", {
+    caller: data.from?.username,
+    calleeId: targetId,
+    found: !!targetUser,
+    calleeSocket: targetUser?.socketId || null,
+  });
+
+  // 2. Agar target topilmasa yoki offline bo‘lsa
   if (!targetUser || !targetUser.socketId) {
     return socket.emit("admin_notification", {
       success: false,
@@ -9,12 +20,15 @@ const handleCall = (io, onlineUsers, data, socket) => {
     });
   }
 
+  // 3. Targetga qo‘ng‘iroq yuborish
   io.to(targetUser.socketId).emit("incoming_call", {
-    from: data.from, // caller object
-    socketId: socket.id, // caller socket
+    from: data.from, // Kimdan qo‘ng‘iroq
+    socketId: socket.id, // Caller socketId (signal uchun)
   });
 
-  console.log(`📞 Call started from ${data.from.username} to ${targetUser.username}`);
+  console.log(
+    `📞 Qo‘ng‘iroq yuborildi: ${data.from?.username} ➝ ${targetUser.username}`
+  );
 };
 
 // ✅ WebRTC: offer yuborish

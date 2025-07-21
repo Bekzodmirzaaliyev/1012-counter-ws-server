@@ -36,11 +36,11 @@ const socketHandler = async (io) => {
     profileImage: user.profileImage,
     email: user.email,
     grade: user.grade,
-    status: false,
     role: user.role,
     isBan: user.isBan,
     isMute: user.isMute,
     warn: user.warn,
+    status: false,
     socketId: null,
   }));
 
@@ -48,22 +48,31 @@ const socketHandler = async (io) => {
     console.log(`🔌 Ulandi: ${socket.id}`);
 
     // ✅ Client ulanayotganda
-    socket.on("connected", async (user) => {
-      // Avval eski socketId ni o‘chir
-      onlineUsers = onlineUsers.filter((u) => u._id !== user._id);
+    socket.on("connected", (user) => {
+      const existingUser = onlineUsers.find(u => u._id === user._id);
 
-      onlineUsers.push({
-        _id: user._id,
-        username: user.username,
-        email: user.email,
-        profileImage: user.profileImage,
-        socketId: socket.id, // MUHIM: socketId saqlanadi!
-        role: user.role,
-        status: true,
-      });
+      if (existingUser) {
+        existingUser.socketId = socket.id;
+        existingUser.status = true;
+        existingUser.username = user.username;
+        existingUser.email = user.email;
+        existingUser.profileImage = user.profileImage;
+        existingUser.role = user.role;
+      } else {
+        onlineUsers.push({
+          _id: user._id,
+          username: user.username,
+          email: user.email,
+          profileImage: user.profileImage,
+          socketId: socket.id,
+          role: user.role,
+          status: true,
+        });
+      }
 
-      io.emit("users", onlineUsers); // frontga jonatamiz
+      io.emit("users", onlineUsers);
     });
+
     // ✅ Xabar jo‘natish
     socket.on("send_message", (data) =>
       handleSendMessage(socket, data, onlineUsers, io)
