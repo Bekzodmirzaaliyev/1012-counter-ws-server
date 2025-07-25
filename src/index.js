@@ -19,7 +19,7 @@ const io = new Server(server, {
 
 // Middleware
 connectDB();
-app.use(cors({ origin: ["http://localhost:5173", "http://localhost:5174"] }));
+app.use(cors({ origin: ["http://localhost:5173", "http://localhost:5174", "https://mars-messanger.onrender.com"] }));
 app.use(express.json());
 
 // Routes
